@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Bubble Pop</string>
+    <!-- Replace with your actual Google Play Games App ID from Play Console -->
+    <!-- Get your App ID from: Play Console > Play Games Services > Setup -->
+    <string name="app_id">YOUR_GOOGLE_PLAY_GAMES_APP_ID</string>
+    <!-- Leaderboard ID (create in Play Console > Play Games Services > Leaderboards) -->
+    <string name="leaderboard_high_scores">YOUR_LEADERBOARD_ID</string>
+</resources>
