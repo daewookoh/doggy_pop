@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/storage_service.dart';
 import '../services/game_services_manager.dart';
+import '../services/ad_service.dart';
 import 'game_screen.dart';
 import 'level_select_screen.dart';
 
@@ -25,12 +26,17 @@ class ResultScreen extends StatefulWidget {
 class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderStateMixin {
   final StorageService _storage = StorageService();
   final GameServicesManager _gameServices = GameServicesManager();
+  final AdService _adService = AdService();
   late AnimationController _animController;
   late Animation<double> _scaleAnim;
+  bool _isRewardAdLoaded = false;
+  bool _rewardClaimed = false;
+  int _displayScore = 0;
 
   @override
   void initState() {
     super.initState();
+    _displayScore = widget.score;
 
     _animController = AnimationController(
       duration: const Duration(milliseconds: 500),
@@ -47,7 +53,19 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     // Save progress if won
     if (widget.isWin) {
       _saveProgress();
+      _loadRewardedAd();
     }
+  }
+
+  void _loadRewardedAd() {
+    _adService.loadRewardedAd(
+      onLoaded: () {
+        setState(() => _isRewardAdLoaded = true);
+      },
+      onFailed: (error) {
+        setState(() => _isRewardAdLoaded = false);
+      },
+    );
   }
 
   Future<void> _saveProgress() async {
@@ -71,8 +89,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF1a1a2e),
-              Color(0xFF16213e),
+              Color(0xFFB5E5FF), // Light sky blue
+              Color(0xFFFFF5F5), // Soft pink white
             ],
           ),
         ),
@@ -131,11 +149,11 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
           style: TextStyle(
             fontSize: 42,
             fontWeight: FontWeight.bold,
-            color: widget.isWin ? const Color(0xFF2ECC71) : const Color(0xFFE74C3C),
+            color: widget.isWin ? const Color(0xFF7CE595) : const Color(0xFFFF9AAE),
             letterSpacing: 4,
             shadows: [
               Shadow(
-                color: (widget.isWin ? const Color(0xFF2ECC71) : const Color(0xFFE74C3C))
+                color: (widget.isWin ? const Color(0xFF7CE595) : const Color(0xFFFF9AAE))
                     .withAlpha((255 * 0.5).round()),
                 blurRadius: 20,
               ),
@@ -146,7 +164,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
           'Level ${widget.level}',
           style: const TextStyle(
             fontSize: 20,
-            color: Colors.white70,
+            color: Color(0xFF7A9BB8),
           ),
         ),
       ],
@@ -173,12 +191,12 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                   Icons.star,
                   size: 50,
                   color: isEarned
-                      ? const Color(0xFFF1C40F)
-                      : Colors.white.withAlpha((255 * 0.2).round()),
+                      ? const Color(0xFFFFD580)
+                      : const Color(0xFFD0D0D0),
                   shadows: isEarned
                       ? [
                           Shadow(
-                            color: const Color(0xFFF1C40F).withAlpha((255 * 0.5).round()),
+                            color: const Color(0xFFFFD580).withAlpha((255 * 0.5).round()),
                             blurRadius: 15,
                           ),
                         ]
@@ -196,11 +214,15 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
       decoration: BoxDecoration(
-        color: Colors.white.withAlpha((255 * 0.1).round()),
+        color: Colors.white.withAlpha((255 * 0.9).round()),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withAlpha((255 * 0.1).round()),
-        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF7AC5F5).withAlpha((255 * 0.3).round()),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -208,13 +230,13 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
             'SCORE',
             style: TextStyle(
               fontSize: 16,
-              color: Colors.white70,
+              color: Color(0xFF7A9BB8),
               letterSpacing: 2,
             ),
           ),
           const SizedBox(height: 8),
           TweenAnimationBuilder<int>(
-            tween: IntTween(begin: 0, end: widget.score),
+            tween: IntTween(begin: 0, end: _displayScore),
             duration: const Duration(milliseconds: 1000),
             builder: (context, value, child) {
               return Text(
@@ -222,7 +244,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                 style: const TextStyle(
                   fontSize: 48,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: Color(0xFF5A5A7A),
                 ),
               );
             },
@@ -239,7 +261,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         // Home button
         _buildButton(
           icon: Icons.home,
-          color: const Color(0xFF34495E),
+          color: const Color(0xFF8B9BB8),
           onTap: () {
             Navigator.of(context).popUntil((route) => route.isFirst);
           },
@@ -249,7 +271,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         // Retry button
         _buildButton(
           icon: Icons.refresh,
-          color: const Color(0xFFF1C40F),
+          color: const Color(0xFFFFD580),
           onTap: () {
             Navigator.pushReplacement(
               context,
@@ -265,7 +287,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         if (widget.isWin)
           _buildButton(
             icon: Icons.arrow_forward,
-            color: const Color(0xFF2ECC71),
+            color: const Color(0xFF7CE595),
             onTap: () {
               Navigator.pushReplacement(
                 context,
@@ -280,7 +302,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         if (!widget.isWin)
           _buildButton(
             icon: Icons.grid_view,
-            color: const Color(0xFF3498DB),
+            color: const Color(0xFF7AC5F5),
             onTap: () {
               Navigator.pushReplacement(
                 context,
@@ -333,12 +355,12 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF3498DB), Color(0xFF2980B9)],
+            colors: [Color(0xFF7AC5F5), Color(0xFF5AA5D5)],
           ),
           borderRadius: BorderRadius.circular(25),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF3498DB).withAlpha((255 * 0.4).round()),
+              color: const Color(0xFF7AC5F5).withAlpha((255 * 0.4).round()),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -364,26 +386,48 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   }
 
   Widget _buildRewardAdButton() {
+    // 이미 보상을 받았거나 광고가 로드되지 않은 경우 표시하지 않음
+    if (_rewardClaimed || !_isRewardAdLoaded) {
+      return const SizedBox.shrink();
+    }
+
     return GestureDetector(
       onTap: () {
-        // TODO: Show reward ad
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Reward ad will be shown here'),
-            duration: Duration(seconds: 2),
-          ),
+        _adService.showRewardedAd(
+          onRewarded: (reward) {
+            setState(() {
+              _displayScore = widget.score * 2;
+              _rewardClaimed = true;
+            });
+            // 보너스 점수도 리더보드에 제출
+            _gameServices.submitScore(_displayScore);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('x2 보너스! 점수: $_displayScore'),
+                backgroundColor: const Color(0xFFD5A5FF),
+              ),
+            );
+          },
+          onAdFailed: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('광고를 불러올 수 없습니다'),
+                backgroundColor: Color(0xFFFF9AAE),
+              ),
+            );
+          },
         );
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF9B59B6), Color(0xFF8E44AD)],
+            colors: [Color(0xFFD5A5FF), Color(0xFFB575E5)],
           ),
           borderRadius: BorderRadius.circular(25),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF9B59B6).withAlpha((255 * 0.4).round()),
+              color: const Color(0xFFD5A5FF).withAlpha((255 * 0.4).round()),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),

@@ -13,7 +13,8 @@ class GameConfig {
   // Grid
   static const int gridColumns = 9;
   static const int maxGridRows = 12;
-  static const double gridOffsetY = 80.0;
+  static const double gridOffsetY = 60.0; // Base offset (SafeArea padding will be added)
+  static const double gridOffsetX = 0.0; // Additional X offset for centering adjustment
 
   // Hexagonal grid spacing
   static const double rowHeight = bubbleRadius * 1.73; // sqrt(3) for hex grid
@@ -43,7 +44,7 @@ class GameConfig {
   static const int popAnimationDuration = 200;
   static const int dropAnimationDuration = 500;
 
-  // Colors
-  static const Color backgroundColor = Color(0xFF1a1a2e);
-  static const Color gridLineColor = Color(0x33FFFFFF);
+  // Colors - Pastel Sky Theme
+  static const Color backgroundColor = Color(0xFFE8F4FC); // Light sky blue
+  static const Color gridLineColor = Color(0x22000000);
 }

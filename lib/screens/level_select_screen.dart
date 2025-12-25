@@ -6,7 +6,7 @@ import 'game_screen.dart';
 class LevelSelectScreen extends StatefulWidget {
   const LevelSelectScreen({super.key});
 
-  static const int totalLevels = 30;
+  static const int totalLevels = 500;
 
   @override
   State<LevelSelectScreen> createState() => _LevelSelectScreenState();
@@ -40,8 +40,8 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF1a1a2e),
-              Color(0xFF16213e),
+              Color(0xFFB5E5FF), // Light sky blue
+              Color(0xFFE8F4FC), // Soft white blue
             ],
           ),
         ),
@@ -77,12 +77,19 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withAlpha((255 * 0.1).round()),
+                color: Colors.white.withAlpha((255 * 0.8).round()),
                 borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF7AC5F5).withAlpha((255 * 0.3).round()),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: const Icon(
                 Icons.arrow_back,
-                color: Colors.white70,
+                color: Color(0xFF7A9BB8),
               ),
             ),
           ),
@@ -93,7 +100,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: Color(0xFF5A5A7A),
               ),
             ),
           ),
@@ -101,17 +108,24 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withAlpha((255 * 0.1).round()),
+              color: Colors.white.withAlpha((255 * 0.8).round()),
               borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFFD580).withAlpha((255 * 0.4).round()),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Row(
               children: [
-                const Icon(Icons.star, color: Color(0xFFF1C40F), size: 20),
+                const Icon(Icons.star, color: Color(0xFFFFD580), size: 20),
                 const SizedBox(width: 4),
                 Text(
                   '${_progress.totalStars}',
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: Color(0xFF5A5A7A),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -172,16 +186,16 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                   end: Alignment.bottomRight,
                   colors: [
                     _getLevelColor(level),
-                    _getLevelColor(level).withAlpha((255 * 0.7).round()),
+                    _getLevelColor(level).withAlpha((255 * 0.8).round()),
                   ],
                 )
               : null,
-          color: isUnlocked ? null : Colors.grey.shade800,
+          color: isUnlocked ? null : Colors.grey.shade300,
           borderRadius: BorderRadius.circular(12),
           boxShadow: isUnlocked
               ? [
                   BoxShadow(
-                    color: _getLevelColor(level).withAlpha((255 * 0.3).round()),
+                    color: _getLevelColor(level).withAlpha((255 * 0.4).round()),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
@@ -203,9 +217,9 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
               const SizedBox(height: 4),
               _buildStars(stars),
             ] else ...[
-              const Icon(
+              Icon(
                 Icons.lock,
-                color: Colors.white30,
+                color: Colors.grey.shade400,
                 size: 24,
               ),
             ],
@@ -216,13 +230,14 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
   }
 
   Color _getLevelColor(int level) {
+    // Pastel colors for levels
     final colors = [
-      const Color(0xFF3498DB),
-      const Color(0xFF2ECC71),
-      const Color(0xFFF1C40F),
-      const Color(0xFFE67E22),
-      const Color(0xFFE74C3C),
-      const Color(0xFF9B59B6),
+      const Color(0xFF7AC5F5), // Pastel blue
+      const Color(0xFF7CE595), // Pastel green
+      const Color(0xFFFFD580), // Pastel yellow
+      const Color(0xFFFFBF8A), // Pastel orange
+      const Color(0xFFFF9AAE), // Pastel pink
+      const Color(0xFFD5A5FF), // Pastel purple
     ];
     return colors[(level - 1) % colors.length];
   }
@@ -233,7 +248,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
       children: List.generate(3, (index) {
         return Icon(
           index < stars ? Icons.star : Icons.star_border,
-          color: index < stars ? const Color(0xFFF1C40F) : Colors.white30,
+          color: index < stars ? const Color(0xFFFFD580) : Colors.white54,
           size: 12,
         );
       }),

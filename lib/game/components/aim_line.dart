@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 
 import '../../config/game_config.dart';
+import '../../utils/hex_grid_utils.dart';
 import '../bubble_game.dart';
 
 class AimLine extends Component with HasGameReference<BubbleGame> {
@@ -30,6 +31,7 @@ class AimLine extends Component with HasGameReference<BubbleGame> {
   }
 
   void _drawAimLine(Canvas canvas, double angle) {
+    // Use actual shooter position (center of screen X, GameConfig.shooterY)
     final shooterPos = Vector2(game.size.x / 2, GameConfig.shooterY);
     final direction = Vector2(cos(angle), sin(angle));
 
@@ -39,6 +41,9 @@ class AimLine extends Component with HasGameReference<BubbleGame> {
     final dotPaint = Paint()
       ..color = Colors.white.withAlpha((255 * 0.7).round())
       ..style = PaintingStyle.fill;
+
+    // Ceiling Y with SafeArea padding
+    final ceilingY = HexGridUtils.safeAreaTop + GameConfig.gridOffsetY + GameConfig.bubbleRadius;
 
     for (var i = 0; i < _maxDots; i++) {
       // Move along the direction
@@ -54,7 +59,7 @@ class AimLine extends Component with HasGameReference<BubbleGame> {
       }
 
       // Stop at ceiling
-      if (currentPos.y <= GameConfig.gridOffsetY + GameConfig.bubbleRadius) {
+      if (currentPos.y <= ceilingY) {
         break;
       }
 
@@ -72,7 +77,7 @@ class AimLine extends Component with HasGameReference<BubbleGame> {
 
   void startAiming(Vector2 position) {
     _isAiming = true;
-    _startPosition = Vector2(game.size.x / 2, GameConfig.shooterY);
+    _startPosition = Vector2(game.size.x / 2, HexGridUtils.shooterY);
     _targetPosition = position;
   }
 
@@ -91,7 +96,7 @@ class AimLine extends Component with HasGameReference<BubbleGame> {
   double? getAngle() {
     if (_startPosition == null || _targetPosition == null) return null;
 
-    final shooterPos = Vector2(game.size.x / 2, GameConfig.shooterY);
+    final shooterPos = Vector2(game.size.x / 2, HexGridUtils.shooterY);
 
     return atan2(
       _targetPosition!.y - shooterPos.y,

@@ -1,6 +1,9 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../game/bubble_game.dart';
+import '../services/ad_service.dart';
+import '../utils/hex_grid_utils.dart';
 import 'result_screen.dart';
 
 class GameScreen extends StatefulWidget {
@@ -14,13 +17,17 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> {
   late BubbleGame game;
+  final AdService _adService = AdService();
   int score = 0;
   int remainingBubbles = 30;
   bool isPaused = false;
+  bool _isBannerAdLoaded = false;
 
   @override
   void initState() {
     super.initState();
+    _loadInterstitialAd();
+    _loadBannerAd();
     game = BubbleGame();
     game.onScoreChanged = (newScore) {
       setState(() => score = newScore);
@@ -39,48 +46,119 @@ class _GameScreenState extends State<GameScreen> {
     };
   }
 
-  void _showResultScreen(bool isWin) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ResultScreen(
-          level: widget.level,
-          score: score,
-          stars: game.calculateStars(),
-          isWin: isWin,
-        ),
-      ),
+  void _loadInterstitialAd() {
+    _adService.loadInterstitialAd();
+  }
+
+  void _loadBannerAd() {
+    _adService.loadBannerAd(
+      onLoaded: () {
+        setState(() => _isBannerAdLoaded = true);
+      },
+      onFailed: (error) {
+        setState(() => _isBannerAdLoaded = false);
+      },
     );
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          // Game with gesture detection
-          GestureDetector(
-            onPanStart: (details) => game.handlePanStart(details.localPosition),
-            onPanUpdate: (details) => game.handlePanUpdate(details.localPosition),
-            onPanEnd: (_) => game.handlePanEnd(),
-            onTapUp: (details) => game.handleTap(details.localPosition),
-            child: GameWidget(game: game),
-          ),
+  void dispose() {
+    _adService.disposeBannerAd();
+    super.dispose();
+  }
 
-          // HUD
-          SafeArea(
-            child: Column(
+  void _showResultScreen(bool isWin) {
+    void navigateToResult() {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ResultScreen(
+            level: widget.level,
+            score: score,
+            stars: game.calculateStars(),
+            isWin: isWin,
+          ),
+        ),
+      );
+    }
+
+    // 게임 횟수 체크 후 3회마다 전면 광고 표시
+    final shouldShowAd = _adService.incrementGameCountAndCheckAd();
+
+    if (shouldShowAd && _adService.isInterstitialAdLoaded) {
+      _adService.showInterstitialAd(
+        onAdDismissed: navigateToResult,
+        onAdFailed: navigateToResult,
+      );
+    } else {
+      navigateToResult();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Set SafeArea top padding for grid positioning
+    final safeAreaTop = MediaQuery.of(context).padding.top;
+    final safeAreaBottom = MediaQuery.of(context).padding.bottom;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    // Calculate shooter Y position (above banner ad and safe area bottom)
+    // Banner ad height is approximately 50, plus some padding
+    const bannerHeight = 60.0;
+    const shooterPadding = 80.0; // Distance from bottom
+    HexGridUtils.shooterY = screenHeight - safeAreaBottom - bannerHeight - shooterPadding;
+    HexGridUtils.safeAreaTop = safeAreaTop;
+
+    return Scaffold(
+      body: Column(
+        children: [
+          // Game area (expands to fill available space above banner)
+          Expanded(
+            child: Stack(
               children: [
-                _buildTopBar(),
+                // Game with gesture detection
+                GestureDetector(
+                  onPanStart: (details) => game.handlePanStart(details.localPosition),
+                  onPanUpdate: (details) => game.handlePanUpdate(details.localPosition),
+                  onPanEnd: (_) => game.handlePanEnd(),
+                  onTapUp: (details) => game.handleTap(details.localPosition),
+                  child: GameWidget(game: game),
+                ),
+
+                // HUD
+                SafeArea(
+                  child: Column(
+                    children: [
+                      _buildTopBar(),
+                    ],
+                  ),
+                ),
+
+                // Pause overlay
+                if (isPaused) _buildPauseOverlay(),
               ],
             ),
           ),
 
-          // Pause overlay
-          if (isPaused) _buildPauseOverlay(),
+          // Banner ad at bottom
+          _buildAdBanner(),
         ],
       ),
     );
+  }
+
+  Widget _buildAdBanner() {
+    if (_isBannerAdLoaded && _adService.bannerAd != null) {
+      return Container(
+        color: const Color(0xFFE8F4FC),
+        width: double.infinity,
+        height: _adService.bannerAd!.size.height.toDouble(),
+        alignment: Alignment.center,
+        child: AdWidget(ad: _adService.bannerAd!),
+      );
+    }
+    // 광고가 로드되지 않아도 공간 확보 (레이아웃 일관성)
+    return const SizedBox(height: 50);
   }
 
   Widget _buildTopBar() {
@@ -96,12 +174,19 @@ class _GameScreenState extends State<GameScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.black.withAlpha((255 * 0.3).round()),
+                color: Colors.white.withAlpha((255 * 0.8).round()),
                 borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF7AC5F5).withAlpha((255 * 0.3).round()),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Icon(
                 isPaused ? Icons.play_arrow : Icons.pause,
-                color: Colors.white,
+                color: const Color(0xFF7A9BB8),
               ),
             ),
           ),
@@ -110,13 +195,20 @@ class _GameScreenState extends State<GameScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.black.withAlpha((255 * 0.3).round()),
+              color: Colors.white.withAlpha((255 * 0.8).round()),
               borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF7AC5F5).withAlpha((255 * 0.3).round()),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Text(
               'Level ${widget.level}',
               style: const TextStyle(
-                color: Colors.white,
+                color: Color(0xFF5A5A7A),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -126,8 +218,15 @@ class _GameScreenState extends State<GameScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.black.withAlpha((255 * 0.3).round()),
+              color: Colors.white.withAlpha((255 * 0.8).round()),
               borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF7AC5F5).withAlpha((255 * 0.3).round()),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Row(
               children: [
@@ -136,14 +235,14 @@ class _GameScreenState extends State<GameScreen> {
                   height: 20,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Color(0xFF3498DB),
+                    color: Color(0xFF7AC5F5),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'x$remainingBubbles',
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: Color(0xFF5A5A7A),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -157,17 +256,21 @@ class _GameScreenState extends State<GameScreen> {
 
   Widget _buildPauseOverlay() {
     return Container(
-      color: Colors.black.withAlpha((255 * 0.7).round()),
+      color: Colors.black.withAlpha((255 * 0.5).round()),
       child: Center(
         child: Container(
           margin: const EdgeInsets.all(40),
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: const Color(0xFF1a1a2e),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Colors.white.withAlpha((255 * 0.1).round()),
-            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF7AC5F5).withAlpha((255 * 0.3).round()),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -177,7 +280,7 @@ class _GameScreenState extends State<GameScreen> {
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: Color(0xFF5A5A7A),
                 ),
               ),
               const SizedBox(height: 8),
@@ -185,25 +288,25 @@ class _GameScreenState extends State<GameScreen> {
                 'Score: $score',
                 style: const TextStyle(
                   fontSize: 18,
-                  color: Colors.white70,
+                  color: Color(0xFF7A9BB8),
                 ),
               ),
               const SizedBox(height: 24),
               _buildPauseButton(
                 'Resume',
-                const Color(0xFF2ECC71),
+                const Color(0xFF7CE595),
                 _togglePause,
               ),
               const SizedBox(height: 12),
               _buildPauseButton(
                 'Restart',
-                const Color(0xFFF1C40F),
+                const Color(0xFFFFD580),
                 _restartGame,
               ),
               const SizedBox(height: 12),
               _buildPauseButton(
                 'Home',
-                const Color(0xFFE74C3C),
+                const Color(0xFFFF9AAE),
                 _goHome,
               ),
             ],
