@@ -6,6 +6,7 @@ import 'dart:math';
 
 import '../../config/game_config.dart';
 import '../../models/bubble_type.dart';
+import '../../utils/bubble_painter.dart';
 import '../../utils/hex_grid_utils.dart';
 import '../bubble_game.dart';
 
@@ -40,143 +41,7 @@ class Bubble extends CircleComponent with HasGameReference<BubbleGame>, Collisio
 
   @override
   void render(Canvas canvas) {
-    // Draw bubble with soft pastel gradient effect
-    final gradient = RadialGradient(
-      center: const Alignment(-0.3, -0.3),
-      radius: 1.0,
-      colors: [
-        Colors.white.withAlpha((255 * 0.9).round()),
-        type.color.withAlpha((255 * 0.85).round()),
-        type.color,
-        type.darkColor.withAlpha((255 * 0.9).round()),
-      ],
-      stops: const [0.0, 0.3, 0.7, 1.0],
-    );
-
-    final paint = Paint()
-      ..shader = gradient.createShader(
-        Rect.fromCircle(center: Offset.zero, radius: radius),
-      );
-
-    canvas.drawCircle(Offset.zero, radius, paint);
-
-    // Draw paw print
-    _drawPawPrint(canvas);
-
-    // Draw bubble shine highlight (top-left)
-    final highlightPaint = Paint()
-      ..color = Colors.white.withAlpha((255 * 0.6).round())
-      ..style = PaintingStyle.fill;
-
-    canvas.drawCircle(
-      Offset(-radius * 0.35, -radius * 0.35),
-      radius * 0.2,
-      highlightPaint,
-    );
-
-    // Small secondary highlight
-    final smallHighlightPaint = Paint()
-      ..color = Colors.white.withAlpha((255 * 0.4).round())
-      ..style = PaintingStyle.fill;
-
-    canvas.drawCircle(
-      Offset(-radius * 0.15, -radius * 0.5),
-      radius * 0.1,
-      smallHighlightPaint,
-    );
-
-    // Draw soft border
-    final borderPaint = Paint()
-      ..color = type.darkColor.withAlpha((255 * 0.5).round())
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-
-    canvas.drawCircle(Offset.zero, radius - 1, borderPaint);
-  }
-
-  void _drawPawPrint(Canvas canvas) {
-    final pawMainColor = type.pawColor;
-    final pawShadowColor = type.pawDarkColor;
-
-    // Main pad (big oval at bottom)
-    final mainPadPaint = Paint()..color = pawMainColor;
-    final mainPadShadowPaint = Paint()..color = pawShadowColor;
-
-    // Draw main pad shadow
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(0, radius * 0.15),
-        width: radius * 0.7,
-        height: radius * 0.55,
-      ),
-      mainPadShadowPaint,
-    );
-
-    // Draw main pad
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(0, radius * 0.12),
-        width: radius * 0.65,
-        height: radius * 0.5,
-      ),
-      mainPadPaint,
-    );
-
-    // Main pad highlight
-    final padHighlightPaint = Paint()
-      ..color = Colors.white.withAlpha((255 * 0.4).round());
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(-radius * 0.08, radius * 0.02),
-        width: radius * 0.25,
-        height: radius * 0.18,
-      ),
-      padHighlightPaint,
-    );
-
-    // Toe pads (4 small circles at top)
-    final toePadPaint = Paint()..color = pawMainColor;
-    final toeShadowPaint = Paint()..color = pawShadowColor;
-
-    // Toe positions and sizes
-    final toePositions = [
-      Offset(-radius * 0.32, -radius * 0.25), // Left outer
-      Offset(-radius * 0.12, -radius * 0.38), // Left inner
-      Offset(radius * 0.12, -radius * 0.38),  // Right inner
-      Offset(radius * 0.32, -radius * 0.25),  // Right outer
-    ];
-
-    final toeSizes = [
-      radius * 0.18, // Left outer
-      radius * 0.19, // Left inner
-      radius * 0.19, // Right inner
-      radius * 0.18, // Right outer
-    ];
-
-    // Draw toe shadows first
-    for (int i = 0; i < toePositions.length; i++) {
-      canvas.drawCircle(
-        toePositions[i] + Offset(0, radius * 0.02),
-        toeSizes[i],
-        toeShadowPaint,
-      );
-    }
-
-    // Draw toe pads
-    for (int i = 0; i < toePositions.length; i++) {
-      canvas.drawCircle(
-        toePositions[i],
-        toeSizes[i] * 0.9,
-        toePadPaint,
-      );
-
-      // Toe highlight
-      canvas.drawCircle(
-        toePositions[i] + Offset(-toeSizes[i] * 0.2, -toeSizes[i] * 0.2),
-        toeSizes[i] * 0.3,
-        padHighlightPaint,
-      );
-    }
+    BubblePainter.drawBubble(canvas, Offset.zero, type, radius);
   }
 
   @override

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../config/game_config.dart';
 import '../../models/bubble_type.dart';
+import '../../utils/bubble_painter.dart';
 import '../../utils/hex_grid_utils.dart';
 import '../bubble_game.dart';
 import 'bubble.dart';
@@ -76,168 +77,43 @@ class Shooter extends PositionComponent with HasGameReference<BubbleGame> {
     currentBubble = null;
   }
 
+  // Cached text painter for "NEXT" label
+  static final TextPainter _nextLabelPainter = TextPainter(
+    text: const TextSpan(
+      text: 'NEXT',
+      style: TextStyle(
+        color: Color(0xFF7A9BB8),
+        fontSize: 10,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+    textDirection: TextDirection.ltr,
+  )..layout();
+
   @override
   void render(Canvas canvas) {
     super.render(canvas);
 
-    // Draw current bubble with paw print
+    // With anchor = center and size = (100, 100), local center is at (50, 50)
+    final localCenter = Offset(size.x / 2, size.y / 2);
+
+    // Draw current bubble with paw print at local center
     if (currentBubble != null) {
-      _drawBubbleWithPaw(canvas, Offset.zero, currentBubble!.type, GameConfig.bubbleRadius);
+      BubblePainter.drawBubble(canvas, localCenter, currentBubble!.type, GameConfig.bubbleRadius);
     }
 
     // Draw next bubble on the right side (same Y level)
     if (nextBubble != null) {
-      // Calculate position: right side of game area
-      final nextBubbleX = game.size.x / 2 - position.x + game.size.x - 50;
-      _drawBubbleWithPaw(
+      final nextBubbleX = localCenter.dx + (game.size.x / 2 - 50);
+      BubblePainter.drawBubble(
         canvas,
-        Offset(nextBubbleX, 0),
+        Offset(nextBubbleX, localCenter.dy),
         nextBubble!.type,
         GameConfig.bubbleRadius * 0.7,
       );
 
-      // Draw "NEXT" label above the next bubble
-      final textPainter = TextPainter(
-        text: const TextSpan(
-          text: 'NEXT',
-          style: TextStyle(
-            color: Color(0xFF7A9BB8),
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      );
-      textPainter.layout();
-      textPainter.paint(canvas, Offset(nextBubbleX - 14, -35));
-    }
-  }
-
-  void _drawBubbleWithPaw(Canvas canvas, Offset center, BubbleType type, double radius) {
-    // Draw bubble with soft pastel gradient
-    final gradient = RadialGradient(
-      center: const Alignment(-0.3, -0.3),
-      radius: 1.0,
-      colors: [
-        Colors.white.withAlpha((255 * 0.9).round()),
-        type.color.withAlpha((255 * 0.85).round()),
-        type.color,
-        type.darkColor.withAlpha((255 * 0.9).round()),
-      ],
-      stops: const [0.0, 0.3, 0.7, 1.0],
-    );
-
-    final paint = Paint()
-      ..shader = gradient.createShader(
-        Rect.fromCircle(center: center, radius: radius),
-      );
-
-    canvas.drawCircle(center, radius, paint);
-
-    // Draw paw print
-    _drawPawPrint(canvas, center, type, radius);
-
-    // Draw bubble shine highlight
-    final highlightPaint = Paint()
-      ..color = Colors.white.withAlpha((255 * 0.6).round());
-    canvas.drawCircle(
-      center + Offset(-radius * 0.35, -radius * 0.35),
-      radius * 0.2,
-      highlightPaint,
-    );
-
-    // Small secondary highlight
-    final smallHighlightPaint = Paint()
-      ..color = Colors.white.withAlpha((255 * 0.4).round());
-    canvas.drawCircle(
-      center + Offset(-radius * 0.15, -radius * 0.5),
-      radius * 0.1,
-      smallHighlightPaint,
-    );
-
-    // Soft border
-    final borderPaint = Paint()
-      ..color = type.darkColor.withAlpha((255 * 0.5).round())
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    canvas.drawCircle(center, radius - 1, borderPaint);
-  }
-
-  void _drawPawPrint(Canvas canvas, Offset center, BubbleType type, double radius) {
-    final pawMainColor = type.pawColor;
-    final pawShadowColor = type.pawDarkColor;
-
-    final mainPadPaint = Paint()..color = pawMainColor;
-    final mainPadShadowPaint = Paint()..color = pawShadowColor;
-
-    // Draw main pad shadow
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: center + Offset(0, radius * 0.15),
-        width: radius * 0.7,
-        height: radius * 0.55,
-      ),
-      mainPadShadowPaint,
-    );
-
-    // Draw main pad
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: center + Offset(0, radius * 0.12),
-        width: radius * 0.65,
-        height: radius * 0.5,
-      ),
-      mainPadPaint,
-    );
-
-    // Main pad highlight
-    final padHighlightPaint = Paint()
-      ..color = Colors.white.withAlpha((255 * 0.4).round());
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: center + Offset(-radius * 0.08, radius * 0.02),
-        width: radius * 0.25,
-        height: radius * 0.18,
-      ),
-      padHighlightPaint,
-    );
-
-    // Toe pads
-    final toePadPaint = Paint()..color = pawMainColor;
-    final toeShadowPaint = Paint()..color = pawShadowColor;
-
-    final toeOffsets = [
-      Offset(-radius * 0.32, -radius * 0.25),
-      Offset(-radius * 0.12, -radius * 0.38),
-      Offset(radius * 0.12, -radius * 0.38),
-      Offset(radius * 0.32, -radius * 0.25),
-    ];
-
-    final toeSizes = [radius * 0.18, radius * 0.19, radius * 0.19, radius * 0.18];
-
-    // Draw toe shadows
-    for (int i = 0; i < toeOffsets.length; i++) {
-      canvas.drawCircle(
-        center + toeOffsets[i] + Offset(0, radius * 0.02),
-        toeSizes[i],
-        toeShadowPaint,
-      );
-    }
-
-    // Draw toe pads
-    for (int i = 0; i < toeOffsets.length; i++) {
-      canvas.drawCircle(
-        center + toeOffsets[i],
-        toeSizes[i] * 0.9,
-        toePadPaint,
-      );
-
-      // Toe highlight
-      canvas.drawCircle(
-        center + toeOffsets[i] + Offset(-toeSizes[i] * 0.2, -toeSizes[i] * 0.2),
-        toeSizes[i] * 0.3,
-        padHighlightPaint,
-      );
+      // Draw "NEXT" label
+      _nextLabelPainter.paint(canvas, Offset(nextBubbleX - 14, localCenter.dy - 35));
     }
   }
 }

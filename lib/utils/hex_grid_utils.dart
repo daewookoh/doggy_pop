@@ -6,21 +6,26 @@ class HexGridUtils {
   static double safeAreaTop = 0.0;
   // Shooter Y position (calculated based on game area height)
   static double shooterY = 700.0;
+  // The starting X position for the entire grid, calculated in BubbleGame.onGameResize
+  static double gridStartX = 0.0;
+
+  /// 화면 너비 기반으로 gridStartX 계산
+  static double calculateGridStartX(double screenWidth) {
+    final totalBubbleWidth = GameConfig.gridColumns * GameConfig.bubbleDiameter;
+    return (screenWidth - totalBubbleWidth) / 2 + GameConfig.bubbleRadius;
+  }
 
   /// Get the world position for a grid cell
   static Vector2 gridToWorld(int row, int col, double screenWidth) {
-    final isOddRow = row % 2 == 1;
-    final offsetX = isOddRow ? GameConfig.bubbleRadius : 0;
+    // screenWidth를 사용하여 gridStartX를 즉석에서 계산
+    final startX = calculateGridStartX(screenWidth);
 
-    // Calculate grid width to center it properly
-    // Even rows: 9 bubbles, Odd rows: 8 bubbles (offset by half bubble)
-    final gridWidth = (GameConfig.gridColumns - 1) * GameConfig.bubbleDiameter + GameConfig.bubbleDiameter;
-    final centerOffsetX = (screenWidth - gridWidth) / 2 + GameConfig.gridOffsetX;
-
-    final x = centerOffsetX +
-        offsetX +
-        GameConfig.bubbleRadius +
-        col * GameConfig.bubbleDiameter;
+    double x;
+    if (row % 2 == 0) {
+      x = startX + col * GameConfig.bubbleDiameter;
+    } else {
+      x = startX + GameConfig.bubbleRadius + col * GameConfig.bubbleDiameter;
+    }
 
     final y = safeAreaTop +
         GameConfig.gridOffsetY +
@@ -38,21 +43,21 @@ class HexGridUtils {
         .round();
     row = row.clamp(0, GameConfig.maxGridRows - 1);
 
-    // Calculate column based on row (odd rows are offset)
-    final isOddRow = row % 2 == 1;
-    final offsetX = isOddRow ? GameConfig.bubbleRadius : 0;
+    // screenWidth를 사용하여 gridStartX를 즉석에서 계산
+    final startX = calculateGridStartX(screenWidth);
 
-    // Calculate grid center offset
-    final gridWidth = (GameConfig.gridColumns - 1) * GameConfig.bubbleDiameter + GameConfig.bubbleDiameter;
-    final centerOffsetX = (screenWidth - gridWidth) / 2 + GameConfig.gridOffsetX;
+    double rowStartX;
+    if (row % 2 == 0) {
+      rowStartX = startX;
+    } else {
+      rowStartX = startX + GameConfig.bubbleRadius;
+    }
 
-    int col = ((position.x - centerOffsetX - offsetX - GameConfig.bubbleRadius) /
-            GameConfig.bubbleDiameter)
-        .round();
+    int col = ((position.x - rowStartX) / GameConfig.bubbleDiameter).round();
 
-    // Clamp column
-    final maxCols = getColumnsForRow(row);
-    col = col.clamp(0, maxCols - 1);
+    // Clamp column to the valid number of columns for this row
+    final numCols = getColumnsForRow(row);
+    col = col.clamp(0, numCols - 1);
 
     return (row, col);
   }

@@ -14,7 +14,7 @@
         <!-- AdMob App ID (테스트용, 프로덕션 배포 시 실제 App ID로 교체) -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-5534374692236631~5061755339" />
+            android:value="ca-app-pub-3940256099454444~3347511713" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

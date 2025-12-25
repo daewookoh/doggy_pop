@@ -13,14 +13,11 @@ class GameConfig {
   // Grid
   static const int gridColumns = 9;
   static const int maxGridRows = 12;
-  static const double gridOffsetY = 60.0; // Base offset (SafeArea padding will be added)
+  static const double gridOffsetY = 80.0; // Base offset (SafeArea padding will be added)
   static const double gridOffsetX = 0.0; // Additional X offset for centering adjustment
 
   // Hexagonal grid spacing
   static const double rowHeight = bubbleRadius * 1.73; // sqrt(3) for hex grid
-
-  // Shooter
-  static const double shooterY = 700.0;
 
   // Game Rules
   static const int minMatchCount = 3;

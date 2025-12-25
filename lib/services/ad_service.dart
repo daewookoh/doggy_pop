@@ -42,32 +42,20 @@ class AdService {
     await MobileAds.instance.initialize();
 
     // 테스트 디바이스 설정
-    if (AdConfig.testDeviceIds.isNotEmpty) {
-      MobileAds.instance.updateRequestConfiguration(
-        RequestConfiguration(testDeviceIds: AdConfig.testDeviceIds),
-      );
-    }
+    MobileAds.instance.updateRequestConfiguration(
+      RequestConfiguration(
+        testDeviceIds: AdConfig.testDeviceIds,
+      ),
+    );
 
     _isInitialized = true;
 
     if (kDebugMode) {
       print('======================================');
-      print('AdService: 디버그 모드로 초기화됨');
-      print('테스트 광고 ID를 사용합니다.');
-      print('');
-      print('📱 테스트 디바이스 ID 확인 방법:');
-      print('Logcat에서 아래 메시지를 찾으세요:');
-      print('"Use RequestConfiguration.Builder.setTestDeviceIds(Arrays.asList("YOUR_DEVICE_ID"))"');
-      print('');
-      if (AdConfig.testDeviceIds.isEmpty) {
-        print('⚠️  현재 등록된 테스트 디바이스가 없습니다.');
-        print('lib/config/ad_config.dart의 testDeviceIds에 추가하세요.');
-      } else {
-        print('✅ 등록된 테스트 디바이스: ${AdConfig.testDeviceIds.length}개');
-        for (var id in AdConfig.testDeviceIds) {
-          print('   - $id');
-        }
-      }
+      print('AdService: 초기화 완료');
+      print('테스트 모드: ${AdConfig.isTestMode ? "ON" : "OFF"}');
+      print('App ID: ${AdConfig.testAppId}');
+      print('Banner ID: ${AdConfig.bannerAdId}');
       print('======================================');
     }
   }

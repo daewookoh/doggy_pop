@@ -67,34 +67,17 @@ extension BubbleTypeExtension on BubbleType {
   Color get pawDarkColor {
     switch (this) {
       case BubbleType.red:
-        return const Color(0xFFE57085); // Darker pink paw
+        return const Color(0xFFE57085);
       case BubbleType.green:
-        return const Color(0xFF5CC575); // Darker green paw
+        return const Color(0xFF5CC575);
       case BubbleType.blue:
-        return const Color(0xFF5AA5D5); // Darker blue paw
+        return const Color(0xFF5AA5D5);
       case BubbleType.yellow:
-        return const Color(0xFFE5A540); // Darker yellow paw
+        return const Color(0xFFE5A540);
       case BubbleType.purple:
-        return const Color(0xFFB575E5); // Darker purple paw
+        return const Color(0xFFB575E5);
       case BubbleType.orange:
-        return const Color(0xFFE58F4A); // Darker orange paw
-    }
-  }
-
-  String get emoji {
-    switch (this) {
-      case BubbleType.red:
-        return '🔴';
-      case BubbleType.green:
-        return '🟢';
-      case BubbleType.blue:
-        return '🔵';
-      case BubbleType.yellow:
-        return '🟡';
-      case BubbleType.purple:
-        return '🟣';
-      case BubbleType.orange:
-        return '🟠';
+        return const Color(0xFFE58F4A);
     }
   }
 

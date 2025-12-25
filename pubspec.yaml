@@ -36,20 +36,20 @@ dependencies:
   cupertino_icons: ^1.0.8
 
   # Game Engine
-  flame: ^1.18.0
-  flame_audio: ^2.10.0
+  flame:
+  flame_audio:
 
   # State Management
-  provider: ^6.1.0
+  provider:
 
   # Local Storage
-  shared_preferences: ^2.2.0
+  shared_preferences:
 
   # Game Services (Google Play Games / Game Center)
-  games_services: ^4.0.2
+  games_services:
 
   # Ads
-  google_mobile_ads: ^5.2.0
+  google_mobile_ads:
 
 dev_dependencies:
   flutter_test:

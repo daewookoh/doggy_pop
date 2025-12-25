@@ -5,6 +5,7 @@ import 'dart:math';
 import '../config/game_config.dart';
 import '../models/bubble_type.dart';
 import '../services/audio_service.dart';
+import '../utils/hex_grid_utils.dart';
 import 'components/bubble.dart';
 import 'components/bubble_grid.dart';
 import 'components/shooter.dart';
@@ -36,6 +37,16 @@ class BubbleGame extends FlameGame with HasCollisionDetection {
 
   @override
   Color backgroundColor() => GameConfig.backgroundColor;
+
+  @override
+  void onGameResize(Vector2 size) {
+    // gridStartX를 먼저 설정해야 자식 컴포넌트(BubbleGrid)가 올바른 위치로 재배치됨
+    final totalBubbleWidth = GameConfig.gridColumns * GameConfig.bubbleDiameter;
+    HexGridUtils.gridStartX = (size.x - totalBubbleWidth) / 2 + GameConfig.bubbleRadius;
+
+    // super 호출 (자식 컴포넌트들의 onGameResize 트리거)
+    super.onGameResize(size);
+  }
 
   @override
   Future<void> onLoad() async {

@@ -20,6 +20,24 @@ class BubbleGrid extends Component with HasGameReference<BubbleGame> {
     await super.onLoad();
   }
 
+  @override
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
+    // Reposition all bubbles when game size changes
+    _repositionAllBubbles();
+  }
+
+  void _repositionAllBubbles() {
+    for (var row = 0; row < grid.length; row++) {
+      for (var col = 0; col < grid[row].length; col++) {
+        final bubble = grid[row][col];
+        if (bubble != null) {
+          bubble.position = getWorldPosition(row, col);
+        }
+      }
+    }
+  }
+
   void clearAll() {
     for (var row = 0; row < grid.length; row++) {
       for (var col = 0; col < grid[row].length; col++) {

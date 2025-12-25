@@ -31,15 +31,15 @@ class AimLine extends Component with HasGameReference<BubbleGame> {
   }
 
   void _drawAimLine(Canvas canvas, double angle) {
-    // Use actual shooter position (center of screen X, GameConfig.shooterY)
-    final shooterPos = Vector2(game.size.x / 2, GameConfig.shooterY);
+    // Use actual shooter position (center of screen X, dynamically calculated shooterY)
+    final shooterPos = Vector2(game.size.x / 2, HexGridUtils.shooterY);
     final direction = Vector2(cos(angle), sin(angle));
 
     var currentPos = shooterPos.clone();
     var currentDirection = direction.clone();
 
     final dotPaint = Paint()
-      ..color = Colors.white.withAlpha((255 * 0.7).round())
+      ..color = const Color(0xFF7AC5F5)
       ..style = PaintingStyle.fill;
 
     // Ceiling Y with SafeArea padding
@@ -65,7 +65,7 @@ class AimLine extends Component with HasGameReference<BubbleGame> {
 
       // Draw dot with fading effect
       final alpha = 1.0 - (i / _maxDots) * 0.7;
-      dotPaint.color = Colors.white.withAlpha((255 * 0.7 * alpha).round());
+      dotPaint.color = const Color(0xFF7AC5F5).withAlpha((255 * alpha).round());
 
       canvas.drawCircle(
         Offset(currentPos.x, currentPos.y),
