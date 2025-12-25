@@ -24,7 +24,10 @@ class HexGridUtils {
     if (row % 2 == 0) {
       x = startX + col * GameConfig.bubbleDiameter;
     } else {
-      x = startX + GameConfig.bubbleRadius + col * GameConfig.bubbleDiameter;
+      x = startX +
+          GameConfig.bubbleRadius +
+          GameConfig.bubbleRadius +
+          col * GameConfig.bubbleDiameter;
     }
 
     final y = safeAreaTop +
@@ -50,7 +53,7 @@ class HexGridUtils {
     if (row % 2 == 0) {
       rowStartX = startX;
     } else {
-      rowStartX = startX + GameConfig.bubbleRadius;
+      rowStartX = startX + GameConfig.bubbleRadius + GameConfig.bubbleRadius;
     }
 
     int col = ((position.x - rowStartX) / GameConfig.bubbleDiameter).round();
